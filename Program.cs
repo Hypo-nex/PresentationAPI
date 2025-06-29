@@ -1,0 +1,45 @@
+
+using Microsoft.EntityFrameworkCore;
+using WWS_API.Application.Hanlders;
+using WWS_API.Application.Interfaces;
+using WWS_API.Infrastructure.Data;
+using WWS_API.Infrastructure.Repositories;
+
+namespace PresentationAPI
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
+
+            builder.Services.AddControllers();
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
+
+            // PostgreSQL + EF Core
+            builder.Services.AddDbContext<AppDbContext>(options =>
+                options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+
+            // Repositories & Handlers
+            builder.Services.AddScoped<IProductRepo, ProductRepo>();
+            builder.Services.AddScoped<IProductHandler, ProductValidationHandler>();
+            builder.Services.AddScoped<ProductDiscountHandler>();
+            builder.Services.AddScoped<ProductLoggingHandler>();
+
+            var app = builder.Build();
+
+            if(app.Environment.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI();
+            }
+
+            app.UseHttpsRedirection();
+            app.UseAuthorization();
+            app.MapControllers();
+
+            app.Run();
+        }
+    }
+}
